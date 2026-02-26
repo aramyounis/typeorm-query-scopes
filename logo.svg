@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="90" fill="#3178c6" opacity="0.1"/>
+  
+  <!-- Main icon - Layered scopes -->
+  <g transform="translate(100, 100)">
+    <!-- Outer scope -->
+    <circle cx="0" cy="0" r="70" fill="none" stroke="#3178c6" stroke-width="4" opacity="0.3"/>
+    
+    <!-- Middle scope -->
+    <circle cx="0" cy="0" r="50" fill="none" stroke="#3178c6" stroke-width="4" opacity="0.6"/>
+    
+    <!-- Inner scope -->
+    <circle cx="0" cy="0" r="30" fill="none" stroke="#3178c6" stroke-width="4"/>
+    
+    <!-- Center dot -->
+    <circle cx="0" cy="0" r="8" fill="#3178c6"/>
+    
+    <!-- Connecting lines -->
+    <line x1="-70" y1="0" x2="-50" y2="0" stroke="#3178c6" stroke-width="2" opacity="0.5"/>
+    <line x1="50" y1="0" x2="70" y2="0" stroke="#3178c6" stroke-width="2" opacity="0.5"/>
+    <line x1="0" y1="-70" x2="0" y2="-50" stroke="#3178c6" stroke-width="2" opacity="0.5"/>
+    <line x1="0" y1="50" x2="0" y2="70" stroke="#3178c6" stroke-width="2" opacity="0.5"/>
+  </g>
+  
+  <!-- TypeScript-style brackets -->
+  <text x="60" y="128" font-family="monospace" font-size="80" fill="#3178c6" opacity="0.2" font-weight="300" text-anchor="middle">{</text>
+  <text x="140" y="128" font-family="monospace" font-size="80" fill="#3178c6" opacity="0.2" font-weight="300" text-anchor="middle">}</text>
+</svg>

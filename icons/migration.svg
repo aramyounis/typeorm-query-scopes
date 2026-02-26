@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Easy Migration - Arrow with boxes -->
+  <circle cx="32" cy="32" r="28" fill="#3178c6" opacity="0.1"/>
+  
+  <!-- Source box -->
+  <rect x="12" y="26" width="16" height="12" rx="2" fill="none" stroke="#3178c6" stroke-width="2.5" opacity="0.5"/>
+  
+  <!-- Arrow -->
+  <line x1="28" y1="32" x2="36" y2="32" stroke="#3178c6" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 36 32 L 32 28 M 36 32 L 32 36" stroke="#3178c6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Target box -->
+  <rect x="36" y="26" width="16" height="12" rx="2" fill="#3178c6" opacity="0.2" stroke="#3178c6" stroke-width="2.5"/>
+  
+  <!-- Checkmark in target -->
+  <path d="M 40 32 L 43 35 L 48 29" fill="none" stroke="#3178c6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Reusable Query Patterns - Circular arrows showing reuse -->
+  <circle cx="32" cy="32" r="28" fill="#3178c6" opacity="0.1"/>
+  
+  <!-- Center circle -->
+  <circle cx="32" cy="32" r="8" fill="#3178c6"/>
+  
+  <!-- Circular arrows -->
+  <path d="M 32 12 A 20 20 0 0 1 52 32" fill="none" stroke="#3178c6" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 52 32 L 48 28 M 52 32 L 56 28" stroke="#3178c6" stroke-width="2" stroke-linecap="round"/>
+  
+  <path d="M 52 32 A 20 20 0 0 1 32 52" fill="none" stroke="#3178c6" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <path d="M 32 52 L 28 48 M 32 52 L 28 56" stroke="#3178c6" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+  
+  <path d="M 32 52 A 20 20 0 0 1 12 32" fill="none" stroke="#3178c6" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <path d="M 12 32 L 16 28 M 12 32 L 8 28" stroke="#3178c6" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+  
+  <path d="M 12 32 A 20 20 0 0 1 32 12" fill="none" stroke="#3178c6" stroke-width="3" stroke-linecap="round" opacity="0.3"/>
+  <path d="M 32 12 L 28 16 M 32 12 L 36 16" stroke="#3178c6" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+</svg>
