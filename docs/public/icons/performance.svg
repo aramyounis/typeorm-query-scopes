@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Zero Overhead - Lightning bolt -->
+  <circle cx="32" cy="32" r="28" fill="#3178c6" opacity="0.1"/>
+  
+  <!-- Lightning bolt -->
+  <path d="M 36 12 L 24 32 L 32 32 L 28 52 L 40 32 L 32 32 Z" fill="#3178c6"/>
+  
+  <!-- Energy rings -->
+  <circle cx="32" cy="32" r="22" fill="none" stroke="#3178c6" stroke-width="2" opacity="0.3" stroke-dasharray="4 4"/>
+  <circle cx="32" cy="32" r="18" fill="none" stroke="#3178c6" stroke-width="2" opacity="0.2" stroke-dasharray="4 4"/>
+</svg>

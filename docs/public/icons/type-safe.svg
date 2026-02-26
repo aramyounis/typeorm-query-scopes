@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Type-Safe - Shield with TS -->
+  <circle cx="32" cy="32" r="28" fill="#3178c6" opacity="0.1"/>
+  
+  <!-- Shield shape -->
+  <path d="M 32 10 L 48 18 L 48 32 C 48 42 42 50 32 54 C 22 50 16 42 16 32 L 16 18 Z" fill="none" stroke="#3178c6" stroke-width="3" stroke-linejoin="round"/>
+  
+  <!-- Inner shield -->
+  <path d="M 32 16 L 44 22 L 44 32 C 44 40 39 46 32 49 C 25 46 20 40 20 32 L 20 22 Z" fill="#3178c6" opacity="0.2"/>
+  
+  <!-- Checkmark -->
+  <path d="M 26 32 L 30 36 L 38 26" fill="none" stroke="#3178c6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

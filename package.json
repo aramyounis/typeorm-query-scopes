@@ -1,0 +1,64 @@
+{
+  "name": "typeorm-query-scopes",
+  "version": "1.0.0",
+  "description": "Reusable query patterns for TypeORM entities - Define query filters with decorators",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "npx ts-node test/integration.test.ts",
+    "demo": "npx ts-node examples/demo.ts",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "docs:deploy": "npm run docs:build && cd docs/.vitepress/dist && git init && git add -A && git commit -m 'deploy' && git push -f git@github.com:aramyounis/typeorm-query-scopes.git main:gh-pages && cd ../../..",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "typeorm",
+    "scopes",
+    "orm",
+    "database",
+    "query",
+    "decorator",
+    "typescript",
+    "sequelize",
+    "repository",
+    "filter",
+    "reusable-queries",
+    "type-safe"
+  ],
+  "author": "aramyounis",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aramyounis/typeorm-query-scopes.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aramyounis/typeorm-query-scopes/issues"
+  },
+  "homepage": "https://aramyounis.github.io/typeorm-query-scopes",
+  "peerDependencies": {
+    "typeorm": "^0.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "better-sqlite3": "^12.6.2",
+    "sqlite3": "^5.1.7",
+    "typeorm": "^0.3.0",
+    "typescript": "^5.0.0",
+    "vitepress": "^1.6.4",
+    "vue": "^3.5.29"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "TYPE_SAFE_SCOPES.md",
+    "MIGRATION_FROM_SEQUELIZE.md"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
