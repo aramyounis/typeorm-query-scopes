@@ -53,6 +53,14 @@ Class decorator function
   // Scope with relations
   withPosts: {
     relations: { posts: true }
+  },
+
+  // Scope with relation scopes
+  withScopedRole: {
+    relations: { role: true },
+    relationScopes: {
+      role: ['adminOnly']
+    }
   }
 })
 @Entity()
@@ -88,10 +96,35 @@ Each scope can include:
 | `where` | `FindOptionsWhere<T>` | Filter conditions |
 | `select` | `(keyof T)[]` | Fields to select |
 | `relations` | `FindOptionsRelations<T>` | Relations to load |
+| `relationScopes` | `RelationScopes` | Apply scopes to related entities by path |
 | `order` | `FindOptionsOrder<T>` | Sorting options |
 | `skip` | `number` | Number of records to skip |
 | `take` | `number` | Number of records to take |
 | `cache` | `boolean \| number` | Query caching |
+
+### Relation Scopes
+
+`relationScopes` lets you reference scopes defined on related entities:
+
+```typescript
+@Scopes<Role>({
+  active: { where: { isActive: true } },
+  byTenant: (tenantId: number) => ({ where: { tenantId } })
+})
+@Entity()
+class Role { ... }
+
+@Scopes<User>({
+  withRoleScopes: {
+    relations: { role: true },
+    relationScopes: {
+      role: ['active', { method: ['byTenant', 10] }]
+    }
+  }
+})
+@Entity()
+class User { ... }
+```
 
 ### Function Scopes
 

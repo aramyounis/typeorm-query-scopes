@@ -195,6 +195,40 @@ export class Post { ... }
 const posts = await postRepo.scope('withFullDetails').find();
 ```
 
+## Relation Scopes
+
+```typescript
+@DefaultScope<Role>({
+  where: { isActive: true }
+})
+@Scopes<Role>({
+  adminOnly: {
+    where: { name: 'admin' }
+  },
+  byTenant: (tenantId: number) => ({
+    where: { tenantId }
+  })
+})
+@Entity()
+export class Role { ... }
+
+@Scopes<User>({
+  withScopedRole: {
+    relations: { role: true },
+    relationScopes: {
+      role: ['adminOnly', { method: ['byTenant', 12] }]
+    }
+  }
+})
+@Entity()
+export class User { ... }
+
+// Loads users where related role matches Role scopes
+const users = await userRepo.scope('withScopedRole').find();
+```
+
+This pattern is useful when you want reusable filtering logic on related entities without duplicating relation where clauses in parent scopes.
+
 ## Conditional Scopes
 
 ```typescript

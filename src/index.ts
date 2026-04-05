@@ -2,7 +2,16 @@ export { Scopes, DefaultScope } from './decorators';
 export { ScopedRepository } from './scoped-repository';
 export { ScopeMetadataStorage } from './metadata';
 export { ScopeMerger } from './scope-merger';
-export type { ScopeOptions, ScopeFunction, ScopeDefinition, ScopeMetadata, ScopeName, ExtractScopeNames } from './types';
+export type {
+  ScopeOptions,
+  ScopeFunction,
+  ScopeDefinition,
+  ScopeMetadata,
+  ScopeName,
+  ExtractScopeNames,
+  ScopeCall,
+  RelationScopes,
+} from './types';
 
 // Helper function to create a scoped repository
 import { DataSource, EntityTarget, ObjectLiteral } from 'typeorm';

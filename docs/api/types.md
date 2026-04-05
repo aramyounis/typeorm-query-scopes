@@ -10,6 +10,7 @@ Options that can be included in a scope definition.
 type ScopeOptions<T> = {
   where?: FindOptionsWhere<T> | FindOptionsWhere<T>[];
   relations?: FindOptionsRelations<T>;
+  relationScopes?: RelationScopes;
   order?: FindOptionsOrder<T>;
   skip?: number;
   take?: number;
@@ -24,6 +25,7 @@ type ScopeOptions<T> = {
 |----------|------|-------------|
 | `where` | `FindOptionsWhere<T>` | Filter conditions |
 | `relations` | `FindOptionsRelations<T>` | Relations to load |
+| `relationScopes` | `RelationScopes` | Apply scopes to related entities |
 | `order` | `FindOptionsOrder<T>` | Sorting options |
 | `skip` | `number` | Records to skip (pagination) |
 | `take` | `number` | Records to take (limit) |
@@ -37,6 +39,7 @@ const scopeOptions: ScopeOptions<User> = {
   where: { isActive: true },
   select: ['id', 'email', 'name'],
   relations: { posts: true },
+  relationScopes: { 'posts.author': ['active'] },
   order: { createdAt: 'DESC' },
   take: 10
 };
@@ -65,6 +68,51 @@ const createdBetween: ScopeFunction<User> = (start: Date, end: Date) => ({
   }
 });
 ```
+
+---
+
+## ScopeCall
+
+Represents a scope call by name or function invocation.
+
+```typescript
+type ScopeCall = string | { method: [string, ...any[]] }
+```
+
+### Examples
+
+```typescript
+const staticCall: ScopeCall = 'active';
+
+const functionCall: ScopeCall = {
+  method: ['byTenant', 42]
+};
+```
+
+---
+
+## RelationScopes
+
+Map relation paths to one or more scope calls.
+
+```typescript
+type RelationScopes = Record<string, ScopeCall | ScopeCall[]>
+```
+
+### Examples
+
+```typescript
+const relationScopes: RelationScopes = {
+  role: ['adminOnly'],
+  'profile.company': ['verified', { method: ['byRegion', 'eu'] }]
+};
+```
+
+### Notes
+
+- Keys are relation paths from the root entity.
+- Values are scope calls that exist on the related entity.
+- Related entity default scope is also applied.
 
 ---
 

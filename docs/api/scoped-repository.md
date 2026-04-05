@@ -162,6 +162,15 @@ const users = await userRepo.scope('verified').find({
 });
 ```
 
+**With Relation Scopes**
+```typescript
+const users = await userRepo.scope('withRoleScopes').find({
+  relationScopes: {
+    role: ['active']
+  }
+});
+```
+
 **Multiple Scopes**
 ```typescript
 const users = await userRepo

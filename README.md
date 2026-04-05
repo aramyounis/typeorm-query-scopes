@@ -86,6 +86,14 @@ import { Scopes, DefaultScope } from 'typeorm-query-scopes';
   withPosts: {
     relations: { posts: true }
   },
+
+  // Scope with relation scopes
+  withActiveAdminRole: {
+    relations: { role: true },
+    relationScopes: {
+      role: ['adminOnly']
+    }
+  },
   
   // Scope with ordering
   newest: {
@@ -151,6 +159,11 @@ const verifiedWithPosts = await userRepo
 // Apply function scope with parameters
 const admins = await userRepo
   .scope({ method: ['byRole', 'admin'] })
+  .find();
+
+// Apply relation scopes (loads only users whose role matches Role scopes)
+const usersWithScopedRole = await userRepo
+  .scope('withActiveAdminRole')
   .find();
 
 // Combine scopes and additional options
@@ -299,11 +312,45 @@ Scopes support the following TypeORM find options:
 
 - `where` - Filter conditions (merged with AND logic)
 - `relations` - Relations to load
+- `relationScopes` - Apply scopes to related entities by relation path
 - `order` - Sorting options
 - `select` - Fields to select
 - `skip` - Number of records to skip
 - `take` - Number of records to take
 - `cache` - Query caching options
+
+### Relation Scopes
+
+Use `relationScopes` to apply scopes from related entities:
+
+```typescript
+@Scopes<Role>({
+  adminOnly: { where: { name: 'admin' } },
+  activeOnly: { where: { isActive: true } }
+})
+@Entity()
+class Role { ... }
+
+@Scopes<User>({
+  withScopedRole: {
+    relations: { role: true },
+    relationScopes: {
+      role: ['activeOnly', 'adminOnly']
+    }
+  }
+})
+@Entity()
+class User { ... }
+
+const users = await userRepo.scope('withScopedRole').find();
+```
+
+`relationScopes` supports:
+
+- Single scope as list: `role: ['activeOnly']`
+- Function scopes: `role: { method: ['byTenant', tenantId] }`
+- Multiple scopes per relation: `role: ['activeOnly', 'adminOnly']`
+- Nested relation paths: `relationScopes: { 'profile.company': ['verified'] }`
 
 ## Scope Merging
 

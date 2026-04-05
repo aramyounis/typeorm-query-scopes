@@ -1,7 +1,7 @@
 import { Repository, FindManyOptions, FindOneOptions, ObjectLiteral, EntityTarget, DataSource } from 'typeorm';
 import { ScopeMetadataStorage } from './metadata';
 import { ScopeMerger } from './scope-merger';
-import { ScopeOptions, ScopeDefinition } from './types';
+import { ScopeOptions, ScopeCall } from './types';
 
 // Helper type to extract scope names from entity class
 type ExtractScopeNames<T> = T extends { __scopeNames?: infer S } ? S : string;
@@ -93,7 +93,151 @@ export class ScopedRepository<Entity extends ObjectLiteral, EntityClass = any> {
     // Add user-provided options
     scopesToApply.push(options as ScopeOptions<Entity>);
 
-    return ScopeMerger.merge(...scopesToApply) as FindManyOptions<Entity>;
+    const merged = ScopeMerger.merge(...scopesToApply) as FindManyOptions<Entity> & ScopeOptions<Entity>;
+    return this.applyRelationScopes(merged) as FindManyOptions<Entity>;
+  }
+
+  private applyRelationScopes(options: ScopeOptions<Entity>): ScopeOptions<Entity> {
+    if (!options.relationScopes || Object.keys(options.relationScopes).length === 0) {
+      return options;
+    }
+
+    const result: ScopeOptions<Entity> = {
+      ...options,
+      where: this.cloneValue(options.where),
+      relations: this.cloneValue(options.relations),
+      order: this.cloneValue(options.order),
+    };
+
+    for (const [relationPath, configuredCalls] of Object.entries(options.relationScopes)) {
+      const scopeCalls = Array.isArray(configuredCalls) ? configuredCalls : [configuredCalls];
+      const relationTarget = this.getRelationTarget(relationPath);
+      const relationMetadata = ScopeMetadataStorage.getMetadata(relationTarget);
+
+      const relationScopes: ScopeOptions<any>[] = [];
+      if (relationMetadata.defaultScope) {
+        relationScopes.push(relationMetadata.defaultScope);
+      }
+
+      for (const scopeCall of scopeCalls) {
+        relationScopes.push(this.resolveScopeCall(relationMetadata.scopes, scopeCall, relationPath));
+      }
+
+      const mergedRelationScope = ScopeMerger.merge(...relationScopes);
+
+      // Ensure requested relation path is loaded.
+      this.setNestedValue(result, 'relations', relationPath, true);
+
+      // Apply relation where/order under the relation path on parent find options.
+      if (mergedRelationScope.where) {
+        this.setNestedValue(result, 'where', relationPath, mergedRelationScope.where);
+      }
+      if (mergedRelationScope.order) {
+        this.setNestedValue(result, 'order', relationPath, mergedRelationScope.order);
+      }
+      if (mergedRelationScope.relations) {
+        const existing = this.getNestedValue(result.relations, relationPath);
+        const nestedRelations = ScopeMerger.merge({ relations: existing as any }, { relations: mergedRelationScope.relations as any }).relations;
+        this.setNestedValue(result, 'relations', relationPath, nestedRelations);
+      }
+    }
+
+    delete result.relationScopes;
+    return result;
+  }
+
+  private resolveScopeCall(
+    scopes: Map<string, any>,
+    scopeCall: ScopeCall,
+    relationPath: string
+  ): ScopeOptions<any> {
+    if (typeof scopeCall === 'string') {
+      const scopeDef = scopes.get(scopeCall);
+      if (!scopeDef) {
+        throw new Error(`Scope "${scopeCall}" not found on relation "${relationPath}"`);
+      }
+      return typeof scopeDef === 'function' ? scopeDef() : scopeDef;
+    }
+
+    const [name, ...args] = scopeCall.method;
+    const scopeDef = scopes.get(name);
+    if (!scopeDef) {
+      throw new Error(`Scope "${name}" not found on relation "${relationPath}"`);
+    }
+    if (typeof scopeDef !== 'function') {
+      throw new Error(`Scope "${name}" on relation "${relationPath}" is not a function`);
+    }
+
+    return scopeDef(...args);
+  }
+
+  private getRelationTarget(relationPath: string): Function {
+    let metadata = this.dataSource.getMetadata(this.target);
+    const parts = relationPath.split('.');
+
+    for (const part of parts) {
+      const relation = metadata.findRelationWithPropertyPath(part);
+      if (!relation) {
+        throw new Error(`Relation "${relationPath}" not found on entity`);
+      }
+      metadata = relation.inverseEntityMetadata;
+    }
+
+    return metadata.target as Function;
+  }
+
+  private setNestedValue(target: any, field: 'where' | 'relations' | 'order', path: string, value: any): void {
+    if (!target[field]) {
+      target[field] = {};
+    }
+
+    const parts = path.split('.');
+    let cursor = target[field];
+
+    for (let i = 0; i < parts.length - 1; i++) {
+      const part = parts[i];
+      if (!cursor[part] || typeof cursor[part] !== 'object') {
+        cursor[part] = {};
+      }
+      cursor = cursor[part];
+    }
+
+    const last = parts[parts.length - 1];
+    const existing = cursor[last];
+    if (existing && typeof existing === 'object' && typeof value === 'object') {
+      cursor[last] = { ...existing, ...value };
+      return;
+    }
+    cursor[last] = value;
+  }
+
+  private getNestedValue(target: any, path: string): any {
+    if (!target || typeof target !== 'object') {
+      return undefined;
+    }
+
+    return path.split('.').reduce((acc, part) => {
+      if (!acc || typeof acc !== 'object') {
+        return undefined;
+      }
+      return acc[part];
+    }, target);
+  }
+
+  private cloneValue<T>(value: T): T {
+    if (value === undefined || value === null) {
+      return value;
+    }
+
+    if (Array.isArray(value)) {
+      return [...value] as unknown as T;
+    }
+
+    if (typeof value === 'object') {
+      return { ...(value as object) } as T;
+    }
+
+    return value;
   }
 
   /**

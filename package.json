@@ -1,6 +1,6 @@
 {
   "name": "typeorm-query-scopes",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Reusable query patterns for TypeORM entities - Define query filters with decorators",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -115,6 +115,55 @@ class Post {
   createdAt!: Date;
 }
 
+@DefaultScope<RoleEntity>({
+  where: { isActive: true }
+})
+@Scopes<RoleEntity>({
+  adminOnly: {
+    where: { name: 'admin' }
+  },
+  inTenant: (tenantId: number) => ({
+    where: { tenantId }
+  })
+})
+@Entity()
+class RoleEntity {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Column()
+  name!: string;
+
+  @Column()
+  tenantId!: number;
+
+  @Column({ default: true })
+  isActive!: boolean;
+
+  @OneToMany(() => Member, member => member.role)
+  members!: Member[];
+}
+
+@Scopes<Member>({
+  withScopedRole: {
+    relations: { role: true },
+    relationScopes: {
+      role: ['adminOnly', { method: ['inTenant', 1] }]
+    }
+  }
+})
+@Entity()
+class Member {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Column()
+  name!: string;
+
+  @ManyToOne(() => RoleEntity, role => role.members)
+  role!: RoleEntity;
+}
+
 // ============================================================================
 // TEST SUITE
 // ============================================================================
@@ -123,6 +172,7 @@ class IntegrationTest {
   private dataSource!: DataSource;
   private userRepo: any;
   private postRepo: any;
+  private memberRepo: any;
   private testsPassed = 0;
   private testsFailed = 0;
 
@@ -132,7 +182,7 @@ class IntegrationTest {
     this.dataSource = new DataSource({
       type: 'sqlite',
       database: ':memory:',
-      entities: [User, Post],
+      entities: [User, Post, RoleEntity, Member],
       synchronize: true,
       logging: false
     });
@@ -141,6 +191,7 @@ class IntegrationTest {
     
     this.userRepo = getScopedRepository(User, this.dataSource);
     this.postRepo = getScopedRepository(Post, this.dataSource);
+    this.memberRepo = getScopedRepository(Member, this.dataSource);
 
     await this.seedData();
     console.log('✅ Database setup complete\n');
@@ -149,6 +200,8 @@ class IntegrationTest {
   async seedData() {
     const userRepository = this.dataSource.getRepository(User);
     const postRepository = this.dataSource.getRepository(Post);
+    const roleRepository = this.dataSource.getRepository(RoleEntity);
+    const memberRepository = this.dataSource.getRepository(Member);
 
     // Create users
     const users = [
@@ -176,6 +229,20 @@ class IntegrationTest {
       const post = postRepository.create(postData);
       await postRepository.save(post);
     }
+
+    const roles = await roleRepository.save([
+      roleRepository.create({ name: 'admin', isActive: true, tenantId: 1 }),
+      roleRepository.create({ name: 'user', isActive: true, tenantId: 1 }),
+      roleRepository.create({ name: 'admin', isActive: false, tenantId: 1 }),
+      roleRepository.create({ name: 'admin', isActive: true, tenantId: 2 }),
+    ]);
+
+    await memberRepository.save([
+      memberRepository.create({ name: 'Active Admin Member', role: roles[0] }),
+      memberRepository.create({ name: 'User Member', role: roles[1] }),
+      memberRepository.create({ name: 'Inactive Admin Member', role: roles[2] }),
+      memberRepository.create({ name: 'Other Tenant Admin Member', role: roles[3] }),
+    ]);
   }
 
   async teardown() {
@@ -324,6 +391,15 @@ class IntegrationTest {
     this.assert(users[0].isVerified && users[0].role === 'admin', 'Should merge conditions');
   }
 
+  async testRelationScopes() {
+    const members = await this.memberRepo.scope('withScopedRole').find();
+    this.assert(members.length === 1, `Expected 1 member with scoped role list, got ${members.length}`);
+    this.assert(members[0].role !== undefined, 'Role should be loaded');
+    this.assert(members[0].role.name === 'admin', 'Role should match adminOnly scope');
+    this.assert(members[0].role.isActive, 'Role default scope should be applied');
+    this.assert(members[0].role.tenantId === 1, 'Role function scope from relation scope list should be applied');
+  }
+
   // ============================================================================
   // RUN ALL TESTS
   // ============================================================================
@@ -357,6 +433,7 @@ class IntegrationTest {
     console.log('\n Running Advanced Tests...\n');
     await this.test('Scope with additional options', () => this.testScopeWithAdditionalOptions())();
     await this.test('Scope merging', () => this.testScopeMerging())();
+    await this.test('Relation scopes apply related entity scopes', () => this.testRelationScopes())();
 
     await this.teardown();
 

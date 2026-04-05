@@ -35,6 +35,20 @@ export class ScopeMerger {
         };
       }
 
+      // Merge relation scopes by relation path
+      if (scope.relationScopes) {
+        const mergedRelationScopes = { ...(result.relationScopes || {}) };
+
+        for (const [path, scopeCalls] of Object.entries(scope.relationScopes)) {
+          const current = mergedRelationScopes[path];
+          const currentList = current ? (Array.isArray(current) ? current : [current]) : [];
+          const nextList = Array.isArray(scopeCalls) ? scopeCalls : [scopeCalls];
+          mergedRelationScopes[path] = [...currentList, ...nextList];
+        }
+
+        result.relationScopes = mergedRelationScopes;
+      }
+
       // Merge order (later scopes override)
       if (scope.order) {
         result.order = {
