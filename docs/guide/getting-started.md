@@ -59,6 +59,12 @@ import { Scopes, DefaultScope } from 'typeorm-query-scopes';
   },
   admin: {
     where: { role: 'admin' }
+  },
+  withScopedRole: {
+    relations: { role: true },
+    relationScopes: {
+      role: ['activeOnly', 'adminOnly']
+    }
   }
 })
 @Entity()
@@ -94,6 +100,7 @@ const userRepo = getScopedRepository(User, dataSource);
 const verifiedUsers = await userRepo.scope('verified').find();
 const admins = await userRepo.scope('admin').find();
 const verifiedAdmins = await userRepo.scope('verified', 'admin').find();
+const withScopedRole = await userRepo.scope('withScopedRole').find();
 
 // Remove default scope
 const allUsers = await userRepo.unscoped().find();
@@ -106,6 +113,7 @@ const allUsers = await userRepo.unscoped().find();
 - Try [Function Scopes](/guide/function-scopes)
 - Understand [Scope Merging](/guide/scope-merging)
 - Enable [Type-Safe Scopes](/guide/type-safe-scopes)
+- Apply [Relation Scope Lists](/api/decorators#relation-scopes)
 
 ## Need Help?
 

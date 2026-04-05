@@ -61,10 +61,17 @@ import { Scopes, DefaultScope, getScopedRepository } from 'typeorm-query-scopes'
   verified: any;
   admin: any;
   withPosts: any;
+  withScopedRole: any;
 }>({
   verified: { where: { isVerified: true } },
   admin: { where: { role: 'admin' } },
-  withPosts: { relations: { posts: true } }
+  withPosts: { relations: { posts: true } },
+  withScopedRole: {
+    relations: { role: true },
+    relationScopes: {
+      role: ['activeOnly', 'adminOnly']
+    }
+  }
 })
 @Entity()
 class User {
@@ -95,6 +102,9 @@ const verifiedAdmins = await userRepo.scope('verified', 'admin').find();
 
 // With relations
 const usersWithPosts = await userRepo.scope('withPosts').find();
+
+// Relations with related-entity scopes
+const usersWithScopedRole = await userRepo.scope('withScopedRole').find();
 
 // Remove default scope
 const allUsers = await userRepo.unscoped().find();
@@ -138,8 +148,8 @@ pnpm add typeorm-query-scopes
 ## What's Next?
 
 <div class="info custom-block">
-  <p class="custom-block-title">Beta Release</p>
-  <p>This is version 1.0.0. The API is stable but may change based on community feedback. Please report any issues on GitHub!</p>
+  <p class="custom-block-title">Latest Release</p>
+  <p>This is version 1.0.1 with relation scope lists support (relationScopes). You can now apply multiple scopes to relations declaratively.</p>
 </div>
 
 - [Getting Started Guide](/guide/getting-started)

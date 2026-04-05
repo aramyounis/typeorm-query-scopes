@@ -93,6 +93,34 @@ Each scope can include any TypeORM find options:
 })
 ```
 
+### Relation Scope Lists
+
+Use `relationScopes` when you want a parent scope to apply scopes defined on related entities.
+
+```typescript
+@Scopes<User>({
+  withScopedRole: {
+    relations: { role: true },
+    relationScopes: {
+      role: ['activeOnly', 'adminOnly']
+    }
+  }
+})
+```
+
+You can also call function scopes in the list:
+
+```typescript
+@Scopes<User>({
+  withTenantRole: {
+    relations: { role: true },
+    relationScopes: {
+      role: ['activeOnly', { method: ['byTenant', 10] }]
+    }
+  }
+})
+```
+
 ### Ordering
 
 ```typescript

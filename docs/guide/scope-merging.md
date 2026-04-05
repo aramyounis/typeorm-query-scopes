@@ -48,6 +48,28 @@ Merged together:
 await userRepo.scope('withPosts', 'withComments').find();
 ```
 
+### RELATION SCOPES
+
+Merged by relation path and concatenated as lists:
+
+```typescript
+@Scopes<User>({
+  roleActive: {
+    relationScopes: {
+      role: ['activeOnly']
+    }
+  },
+  roleAdmin: {
+    relationScopes: {
+      role: ['adminOnly']
+    }
+  }
+})
+
+// Applies both scopes to the same relation path: role
+await userRepo.scope('roleActive', 'roleAdmin').find();
+```
+
 ### ORDER
 
 Later scopes override earlier ones:

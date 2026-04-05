@@ -2,6 +2,21 @@
 
 All notable changes to TypeORM Scopes will be documented here.
 
+## [1.0.1] - 2026-04-05
+
+### Added
+
+- `relationScopes` support for applying scopes on related entities by relation path
+- Support for list syntax in relation scopes, for example `role: ['activeOnly', 'adminOnly']`
+- Support for function scopes in relation scope lists, for example `{ method: ['byTenant', 10] }`
+- Integration test coverage for relation scope list behavior
+
+### Documentation
+
+- Added relation scopes documentation in API pages
+- Added advanced examples for relation scope lists
+- Updated guides and homepage examples to show multi-scope relation lists
+
 ## [1.0.0] - 2026-02-27
 
 ### Added
@@ -47,6 +62,7 @@ All notable changes to TypeORM Scopes will be documented here.
 
 ## Version History
 
+- **1.0.1** - Relation scope lists and docs update (2026-04-05)
 - **1.0.0** - Initial stable release (2026-02-27)
 
 ## Upgrade Guide

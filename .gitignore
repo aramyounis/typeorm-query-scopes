@@ -6,3 +6,4 @@ coverage/
 .env
 *.tsbuildinfo
 .npmrc
+package-lock.json

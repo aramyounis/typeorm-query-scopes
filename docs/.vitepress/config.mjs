@@ -20,8 +20,8 @@ export default defineConfig({
       { text: 'Guide', link: '/guide/getting-started' },
       { text: 'API Reference', link: '/api/decorators' },
       { text: 'Examples', link: '/examples/basic' },
-      { 
-        text: 'v1.0.0',
+      {
+        text: 'v1.0.1',
         items: [
           { text: 'Changelog', link: '/changelog' },
           { text: 'Contributing', link: '/contributing' }
