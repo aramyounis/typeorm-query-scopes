@@ -14,7 +14,7 @@ type ScopeOptions<T> = {
   order?: FindOptionsOrder<T>;
   skip?: number;
   take?: number;
-  select?: (keyof T)[];
+  select?: FindOptionsSelect<T>;
   cache?: boolean | number;
 }
 ```
@@ -29,7 +29,7 @@ type ScopeOptions<T> = {
 | `order` | `FindOptionsOrder<T>` | Sorting options |
 | `skip` | `number` | Records to skip (pagination) |
 | `take` | `number` | Records to take (limit) |
-| `select` | `(keyof T)[]` | Fields to select |
+| `select` | `FindOptionsSelect<T>` | Type-safe field selection tree |
 | `cache` | `boolean \| number` | Query caching |
 
 ### Example
@@ -37,7 +37,11 @@ type ScopeOptions<T> = {
 ```typescript
 const scopeOptions: ScopeOptions<User> = {
   where: { isActive: true },
-  select: ['id', 'email', 'name'],
+  select: {
+    id: true,
+    email: true,
+    name: true
+  },
   relations: { posts: true },
   relationScopes: { 'posts.author': ['active'] },
   order: { createdAt: 'DESC' },
@@ -353,7 +357,7 @@ const fullScope: Required<ScopeOptions<User>> = {
   order: {},
   skip: 0,
   take: 10,
-  select: ['id'],
+  select: { id: true },
   cache: false
 };
 ```

@@ -147,10 +147,10 @@ const userRepo = getScopedRepository(User, dataSource);
 ```typescript
 @Scopes<User>({
   listView: {
-    select: ['id', 'name', 'avatar'] // Minimal for lists
+    select: { id: true, name: true, avatar: true } // Minimal for lists
   },
   detailView: {
-    select: ['id', 'name', 'email', 'bio', 'avatar'] // Full for details
+    select: { id: true, name: true, email: true, bio: true, avatar: true } // Full for details
   }
 })
 ```
@@ -285,13 +285,13 @@ it('should merge where conditions', async () => {
 ### Remember Scope Merging Rules
 
 ```typescript
-// SELECT is overridden, not merged
+// SELECT trees are deep-merged by field path
 @Scopes<User>({
-  basic: { select: ['id', 'name'] },
-  detailed: { select: ['id', 'email'] }
+  basic: { select: { id: true, name: true } },
+  detailed: { select: { email: true } }
 })
 
-// Only gets id and email (not name)
+// Gets id, name, and email
 await userRepo.scope('basic', 'detailed').find();
 ```
 

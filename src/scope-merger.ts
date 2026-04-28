@@ -59,12 +59,7 @@ export class ScopeMerger {
 
       // Merge select (combine unique fields)
       if (scope.select) {
-        if (!result.select) {
-          result.select = [...scope.select];
-        } else {
-          const combined = new Set([...result.select, ...scope.select]);
-          result.select = Array.from(combined);
-        }
+        result.select = this.mergeSelect(result.select, scope.select);
       }
 
       // Override scalar values (last scope wins)
@@ -74,5 +69,58 @@ export class ScopeMerger {
     }
 
     return result;
+  }
+
+  static mergeSelect<T>(current: any, next: any): any {
+    if (current === undefined || current === null) {
+      return this.cloneSelect(next);
+    }
+
+    if (next === undefined || next === null) {
+      return this.cloneSelect(current);
+    }
+
+    const currentIsObject = this.isPlainObject(current);
+    const nextIsObject = this.isPlainObject(next);
+
+    if (currentIsObject && nextIsObject) {
+      const merged: Record<string, any> = { ...current };
+
+      for (const [key, value] of Object.entries(next)) {
+        merged[key] = this.mergeSelect(merged[key], value);
+      }
+
+      return merged;
+    }
+
+    if (nextIsObject) {
+      return this.cloneSelect(next);
+    }
+
+    if (currentIsObject) {
+      return this.cloneSelect(current);
+    }
+
+    return Boolean(current) || Boolean(next);
+  }
+
+  private static cloneSelect(value: any): any {
+    if (Array.isArray(value)) {
+      return [...value];
+    }
+
+    if (this.isPlainObject(value)) {
+      const cloned: Record<string, any> = {};
+      for (const [key, nestedValue] of Object.entries(value)) {
+        cloned[key] = this.cloneSelect(nestedValue);
+      }
+      return cloned;
+    }
+
+    return value;
+  }
+
+  private static isPlainObject(value: any): value is Record<string, any> {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
   }
 }

@@ -190,7 +190,7 @@ scopes: {
 // TypeORM Scopes
 @Scopes<User>({
   publicFields: {
-    select: ['id', 'name', 'avatar']
+    select: { id: true, name: true, avatar: true }
   }
 })
 ```

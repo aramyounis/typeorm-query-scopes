@@ -41,7 +41,7 @@ Class decorator function
   // Scope with multiple options
   active: {
     where: { isActive: true },
-    select: ['id', 'email', 'name'],
+    select: { id: true, email: true, name: true },
     order: { createdAt: 'DESC' }
   },
   

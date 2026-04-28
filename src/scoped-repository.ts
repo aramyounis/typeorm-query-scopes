@@ -215,15 +215,7 @@ export class ScopedRepository<Entity extends ObjectLiteral, EntityClass = any> {
     const last = parts[parts.length - 1];
     const existing = cursor[last];
     if (field === 'select') {
-      const normalizedExisting = this.normalizeSelectTree(existing);
-      const normalizedValue = this.normalizeSelectTree(value);
-
-      if (normalizedExisting && typeof normalizedExisting === 'object' && normalizedValue && typeof normalizedValue === 'object') {
-        cursor[last] = { ...normalizedExisting, ...normalizedValue };
-        return;
-      }
-
-      cursor[last] = normalizedValue;
+      cursor[last] = ScopeMerger.mergeSelect(existing, this.normalizeSelectTree(value));
       return;
     }
 
@@ -276,7 +268,13 @@ export class ScopedRepository<Entity extends ObjectLiteral, EntityClass = any> {
     }
 
     if (typeof value === 'object') {
-      return { ...value };
+      const normalized: Record<string, any> = {};
+
+      for (const [key, nestedValue] of Object.entries(value)) {
+        normalized[key] = this.normalizeSelectTree(nestedValue);
+      }
+
+      return normalized;
     }
 
     return value;

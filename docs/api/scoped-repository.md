@@ -319,15 +319,15 @@ await userRepo.scope('verified', 'active').find();
 
 ### SELECT Fields
 
-Combined (union):
+Combined as a typed select tree:
 
 ```typescript
 @Scopes<User>({
-  basicFields: { select: ['id', 'name'] },
-  emailField: { select: ['email'] }
+  basicFields: { select: { id: true, name: true } },
+  emailField: { select: { email: true } }
 })
 
-// Results in: SELECT id, name, email
+// Results in a merged select tree: { id: true, name: true, email: true }
 await userRepo.scope('basicFields', 'emailField').find();
 ```
 

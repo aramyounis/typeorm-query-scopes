@@ -12,21 +12,21 @@ Understanding the value of scopes and when to use them.
 // In UserController.ts
 const users = await userRepo.find({
   where: { isActive: true, isVerified: true },
-  select: ['id', 'email', 'name'],
+  select: { id: true, email: true, name: true },
   relations: { posts: true }
 });
 
 // In AdminController.ts
 const users = await userRepo.find({
   where: { isActive: true, isVerified: true },
-  select: ['id', 'email', 'name'],
+  select: { id: true, email: true, name: true },
   relations: { posts: true }
 });
 
 // In UserService.ts
 const users = await userRepo.find({
   where: { isActive: true, isVerified: true },
-  select: ['id', 'email', 'name'],
+  select: { id: true, email: true, name: true },
   relations: { posts: true }
 });
 ```
@@ -38,7 +38,7 @@ const users = await userRepo.find({
 @Scopes<User>({
   verified: {
     where: { isActive: true, isVerified: true },
-    select: ['id', 'email', 'name'],
+    select: { id: true, email: true, name: true },
     relations: { posts: true }
   }
 })
@@ -97,7 +97,7 @@ const result = await userRepo.find({
     role: In(['admin', 'moderator']),
     createdAt: MoreThan(lastWeek)
   },
-  select: ['id', 'email', 'name', 'role'],
+  select: { id: true, email: true, name: true, role: true },
   relations: { posts: true, comments: true },
   order: { createdAt: 'DESC' },
   take: 10
@@ -140,10 +140,10 @@ Ensure data isolation across tenants.
 ```typescript
 @Scopes<User>({
   publicFields: {
-    select: ['id', 'name', 'avatar']
+    select: { id: true, name: true, avatar: true }
   },
   privateFields: {
-    select: ['id', 'name', 'email', 'phone', 'address']
+    select: { id: true, name: true, email: true, phone: true, address: true }
   }
 })
 ```
@@ -188,7 +188,7 @@ Scopes can actually improve performance:
 ```typescript
 @Scopes<User>({
   minimal: {
-    select: ['id', 'name']  // Only fetch needed fields
+    select: { id: true, name: true }  // Only fetch needed fields
   }
 })
 ```

@@ -1,4 +1,4 @@
-import { FindManyOptions, FindOptionsWhere, FindOptionsOrder, FindOptionsRelations } from 'typeorm';
+import { FindManyOptions, FindOptionsWhere, FindOptionsOrder, FindOptionsRelations, FindOptionsSelect } from 'typeorm';
 
 export type ScopeCall = string | { method: [string, ...any[]] };
 
@@ -11,7 +11,7 @@ export type ScopeOptions<T> = {
   order?: FindOptionsOrder<T>;
   skip?: number;
   take?: number;
-  select?: (keyof T)[];
+  select?: FindOptionsSelect<T>;
   cache?: boolean | number;
 };
 

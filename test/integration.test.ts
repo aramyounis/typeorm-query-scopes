@@ -166,7 +166,11 @@ class Member {
 
 @Scopes<Metal>({
   customerApiSingle: {
-    select: ['id', 'name', 'symbol']
+    select: {
+      id: true,
+      name: true,
+      symbol: true
+    }
   }
 })
 @Entity()
@@ -189,7 +193,15 @@ class Metal {
 
 @Scopes<MetalVariant>({
   customerApiSingle: {
-    select: ['id', 'name'],
+    select: {
+      id: true,
+      name: true,
+      metal: {
+        id: true,
+        name: true,
+        symbol: true
+      }
+    },
     relations: { metal: true },
     relationScopes: {
       metal: 'customerApiSingle'

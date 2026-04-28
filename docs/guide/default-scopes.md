@@ -210,7 +210,7 @@ export class User {
 ```typescript
 @DefaultScope<User>({
   where: { isActive: true },
-  select: ['id', 'email', 'name'] // Only fetch these fields by default
+  select: { id: true, email: true, name: true } // Only fetch these fields by default
 })
 @Entity()
 export class User {

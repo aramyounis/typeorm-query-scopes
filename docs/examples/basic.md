@@ -124,11 +124,11 @@ const usersWithPosts = await userRepo.scope('withPosts').find();
 ```typescript
 @Scopes<User>({
   publicFields: {
-    select: ['id', 'name', 'avatar']
+    select: { id: true, name: true, avatar: true }
   },
   
   privateFields: {
-    select: ['id', 'name', 'email', 'phone']
+    select: { id: true, name: true, email: true, phone: true }
   }
 })
 @Entity()

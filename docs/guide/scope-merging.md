@@ -22,15 +22,15 @@ await userRepo.scope('verified', 'active').find();
 
 ### SELECT Fields
 
-Later scopes override earlier ones:
+SELECT trees are deep-merged by field path:
 
 ```typescript
 @Scopes<User>({
-  basic: { select: ['id', 'name'] },
-  detailed: { select: ['id', 'name', 'email', 'phone'] }
+  basic: { select: { id: true, name: true } },
+  detailed: { select: { email: true, phone: true } }
 })
 
-// Only uses 'detailed' select
+// Uses id, name, email, and phone
 await userRepo.scope('basic', 'detailed').find();
 ```
 

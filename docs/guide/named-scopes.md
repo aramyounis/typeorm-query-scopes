@@ -65,10 +65,10 @@ Each scope can include any TypeORM find options:
 ```typescript
 @Scopes<User>({
   publicFields: {
-    select: ['id', 'name', 'avatar']
+    select: { id: true, name: true, avatar: true }
   },
   privateFields: {
-    select: ['id', 'name', 'email', 'phone']
+    select: { id: true, name: true, email: true, phone: true }
   }
 })
 ```
@@ -157,7 +157,7 @@ You can also call function scopes in the list:
 @Scopes<User>({
   featuredUsers: {
     where: { isFeatured: true },
-    select: ['id', 'name', 'avatar', 'bio'],
+    select: { id: true, name: true, avatar: true, bio: true },
     relations: { posts: true },
     order: { followerCount: 'DESC' },
     take: 10
@@ -266,12 +266,12 @@ import { MoreThan, LessThan } from 'typeorm';
 @Scopes<User>({
   // Minimal data for lists
   listView: {
-    select: ['id', 'name', 'avatar']
+    select: { id: true, name: true, avatar: true }
   },
   
   // Full data for detail view
   detailView: {
-    select: ['id', 'name', 'email', 'bio', 'avatar'],
+    select: { id: true, name: true, email: true, bio: true, avatar: true },
     relations: { posts: true, followers: true }
   }
 })
@@ -284,7 +284,7 @@ import { Like } from 'typeorm';
 
 @Scopes<User>({
   searchable: {
-    select: ['id', 'name', 'email', 'username']
+    select: { id: true, name: true, email: true, username: true }
   }
 })
 
