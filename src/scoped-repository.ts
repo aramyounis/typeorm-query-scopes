@@ -97,7 +97,7 @@ export class ScopedRepository<Entity extends ObjectLiteral, EntityClass = any> {
     return this.applyRelationScopes(merged) as FindManyOptions<Entity>;
   }
 
-  private applyRelationScopes(options: ScopeOptions<Entity>): ScopeOptions<Entity> {
+  private applyRelationScopes(options: ScopeOptions<Entity>, entityTarget: Function = this.getEntityConstructor()): ScopeOptions<Entity> {
     if (!options.relationScopes || Object.keys(options.relationScopes).length === 0) {
       return options;
     }
@@ -107,11 +107,12 @@ export class ScopedRepository<Entity extends ObjectLiteral, EntityClass = any> {
       where: this.cloneValue(options.where),
       relations: this.cloneValue(options.relations),
       order: this.cloneValue(options.order),
+      select: this.cloneValue(options.select),
     };
 
     for (const [relationPath, configuredCalls] of Object.entries(options.relationScopes)) {
       const scopeCalls = Array.isArray(configuredCalls) ? configuredCalls : [configuredCalls];
-      const relationTarget = this.getRelationTarget(relationPath);
+      const relationTarget = this.getRelationTarget(entityTarget, relationPath);
       const relationMetadata = ScopeMetadataStorage.getMetadata(relationTarget);
 
       const relationScopes: ScopeOptions<any>[] = [];
@@ -124,21 +125,25 @@ export class ScopedRepository<Entity extends ObjectLiteral, EntityClass = any> {
       }
 
       const mergedRelationScope = ScopeMerger.merge(...relationScopes);
+      const resolvedRelationScope = this.applyRelationScopes(mergedRelationScope, relationTarget);
 
       // Ensure requested relation path is loaded.
       this.setNestedValue(result, 'relations', relationPath, true);
 
       // Apply relation where/order under the relation path on parent find options.
-      if (mergedRelationScope.where) {
-        this.setNestedValue(result, 'where', relationPath, mergedRelationScope.where);
+      if (resolvedRelationScope.where) {
+        this.setNestedValue(result, 'where', relationPath, resolvedRelationScope.where);
       }
-      if (mergedRelationScope.order) {
-        this.setNestedValue(result, 'order', relationPath, mergedRelationScope.order);
+      if (resolvedRelationScope.order) {
+        this.setNestedValue(result, 'order', relationPath, resolvedRelationScope.order);
       }
-      if (mergedRelationScope.relations) {
+      if (resolvedRelationScope.relations) {
         const existing = this.getNestedValue(result.relations, relationPath);
-        const nestedRelations = ScopeMerger.merge({ relations: existing as any }, { relations: mergedRelationScope.relations as any }).relations;
+        const nestedRelations = ScopeMerger.merge({ relations: existing as any }, { relations: resolvedRelationScope.relations as any }).relations;
         this.setNestedValue(result, 'relations', relationPath, nestedRelations);
+      }
+      if (resolvedRelationScope.select) {
+        this.setNestedValue(result, 'select', relationPath, resolvedRelationScope.select);
       }
     }
 
@@ -171,8 +176,8 @@ export class ScopedRepository<Entity extends ObjectLiteral, EntityClass = any> {
     return scopeDef(...args);
   }
 
-  private getRelationTarget(relationPath: string): Function {
-    let metadata = this.dataSource.getMetadata(this.target);
+  private getRelationTarget(entityTarget: Function, relationPath: string): Function {
+    let metadata = this.dataSource.getMetadata(entityTarget);
     const parts = relationPath.split('.');
 
     for (const part of parts) {
@@ -186,8 +191,13 @@ export class ScopedRepository<Entity extends ObjectLiteral, EntityClass = any> {
     return metadata.target as Function;
   }
 
-  private setNestedValue(target: any, field: 'where' | 'relations' | 'order', path: string, value: any): void {
-    if (!target[field]) {
+  private setNestedValue(target: any, field: 'where' | 'relations' | 'order' | 'select', path: string, value: any): void {
+    if (field === 'select') {
+      target.select = this.normalizeSelectTree(target.select);
+      if (!target.select || typeof target.select !== 'object') {
+        target.select = {};
+      }
+    } else if (!target[field]) {
       target[field] = {};
     }
 
@@ -204,6 +214,19 @@ export class ScopedRepository<Entity extends ObjectLiteral, EntityClass = any> {
 
     const last = parts[parts.length - 1];
     const existing = cursor[last];
+    if (field === 'select') {
+      const normalizedExisting = this.normalizeSelectTree(existing);
+      const normalizedValue = this.normalizeSelectTree(value);
+
+      if (normalizedExisting && typeof normalizedExisting === 'object' && normalizedValue && typeof normalizedValue === 'object') {
+        cursor[last] = { ...normalizedExisting, ...normalizedValue };
+        return;
+      }
+
+      cursor[last] = normalizedValue;
+      return;
+    }
+
     if (existing && typeof existing === 'object' && typeof value === 'object') {
       cursor[last] = { ...existing, ...value };
       return;
@@ -235,6 +258,25 @@ export class ScopedRepository<Entity extends ObjectLiteral, EntityClass = any> {
 
     if (typeof value === 'object') {
       return { ...(value as object) } as T;
+    }
+
+    return value;
+  }
+
+  private normalizeSelectTree(value: any): any {
+    if (value === undefined || value === null) {
+      return value;
+    }
+
+    if (Array.isArray(value)) {
+      return value.reduce((result, field) => {
+        result[field as string] = true;
+        return result;
+      }, {} as Record<string, boolean>);
+    }
+
+    if (typeof value === 'object') {
+      return { ...value };
     }
 
     return value;

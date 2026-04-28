@@ -164,6 +164,73 @@ class Member {
   role!: RoleEntity;
 }
 
+@Scopes<Metal>({
+  customerApiSingle: {
+    select: ['id', 'name', 'symbol']
+  }
+})
+@Entity()
+class Metal {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Column()
+  name!: string;
+
+  @Column()
+  symbol!: string;
+
+  @Column()
+  description!: string;
+
+  @OneToMany(() => MetalVariant, variant => variant.metal)
+  variants!: MetalVariant[];
+}
+
+@Scopes<MetalVariant>({
+  customerApiSingle: {
+    select: ['id', 'name'],
+    relations: { metal: true },
+    relationScopes: {
+      metal: 'customerApiSingle'
+    }
+  }
+})
+@Entity()
+class MetalVariant {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Column()
+  name!: string;
+
+  @Column()
+  internalCode!: string;
+
+  @ManyToOne(() => Metal, metal => metal.variants)
+  metal!: Metal;
+}
+
+@Scopes<MetalPriceHistory>({
+  withCustomerApiSingleVariant: {
+    relations: { metalVariant: true },
+    relationScopes: {
+      metalVariant: 'customerApiSingle'
+    }
+  }
+})
+@Entity()
+class MetalPriceHistory {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Column('float')
+  price!: number;
+
+  @ManyToOne(() => MetalVariant)
+  metalVariant!: MetalVariant;
+}
+
 // ============================================================================
 // TEST SUITE
 // ============================================================================
@@ -173,6 +240,9 @@ class IntegrationTest {
   private userRepo: any;
   private postRepo: any;
   private memberRepo: any;
+  private metalRepo: any;
+  private metalVariantRepo: any;
+  private metalPriceHistoryRepo: any;
   private testsPassed = 0;
   private testsFailed = 0;
 
@@ -182,7 +252,7 @@ class IntegrationTest {
     this.dataSource = new DataSource({
       type: 'sqlite',
       database: ':memory:',
-      entities: [User, Post, RoleEntity, Member],
+      entities: [User, Post, RoleEntity, Member, Metal, MetalVariant, MetalPriceHistory],
       synchronize: true,
       logging: false
     });
@@ -192,6 +262,9 @@ class IntegrationTest {
     this.userRepo = getScopedRepository(User, this.dataSource);
     this.postRepo = getScopedRepository(Post, this.dataSource);
     this.memberRepo = getScopedRepository(Member, this.dataSource);
+    this.metalRepo = getScopedRepository(Metal, this.dataSource);
+    this.metalVariantRepo = getScopedRepository(MetalVariant, this.dataSource);
+    this.metalPriceHistoryRepo = getScopedRepository(MetalPriceHistory, this.dataSource);
 
     await this.seedData();
     console.log('✅ Database setup complete\n');
@@ -202,6 +275,9 @@ class IntegrationTest {
     const postRepository = this.dataSource.getRepository(Post);
     const roleRepository = this.dataSource.getRepository(RoleEntity);
     const memberRepository = this.dataSource.getRepository(Member);
+    const metalRepository = this.dataSource.getRepository(Metal);
+    const metalVariantRepository = this.dataSource.getRepository(MetalVariant);
+    const metalPriceHistoryRepository = this.dataSource.getRepository(MetalPriceHistory);
 
     // Create users
     const users = [
@@ -243,6 +319,29 @@ class IntegrationTest {
       memberRepository.create({ name: 'Inactive Admin Member', role: roles[2] }),
       memberRepository.create({ name: 'Other Tenant Admin Member', role: roles[3] }),
     ]);
+
+    const gold = await metalRepository.save(
+      metalRepository.create({
+        name: 'Gold',
+        symbol: 'AU',
+        description: 'Precious metal'
+      })
+    );
+
+    const goldVariant = await metalVariantRepository.save(
+      metalVariantRepository.create({
+        name: '24K',
+        internalCode: 'GOLD-24K',
+        metal: gold
+      })
+    );
+
+    await metalPriceHistoryRepository.save(
+      metalPriceHistoryRepository.create({
+        price: 2210.5,
+        metalVariant: goldVariant
+      })
+    );
   }
 
   async teardown() {
@@ -400,6 +499,17 @@ class IntegrationTest {
     this.assert(members[0].role.tenantId === 1, 'Role function scope from relation scope list should be applied');
   }
 
+  async testNestedRelationScopeSelect() {
+    const histories = await this.metalPriceHistoryRepo.scope('withCustomerApiSingleVariant').find();
+    this.assert(histories.length === 1, `Expected 1 price history, got ${histories.length}`);
+    this.assert(histories[0].metalVariant !== undefined, 'Metal variant should be loaded');
+    this.assert(histories[0].metalVariant.name === '24K', 'Variant name should be selected');
+    this.assert(histories[0].metalVariant.internalCode === undefined, 'Variant select should omit internalCode');
+    this.assert(histories[0].metalVariant.metal !== undefined, 'Nested metal relation should be loaded');
+    this.assert(histories[0].metalVariant.metal.name === 'Gold', 'Nested metal should be loaded with selected fields');
+    this.assert(histories[0].metalVariant.metal.description === undefined, 'Metal select should omit description');
+  }
+
   // ============================================================================
   // RUN ALL TESTS
   // ============================================================================
@@ -434,6 +544,7 @@ class IntegrationTest {
     await this.test('Scope with additional options', () => this.testScopeWithAdditionalOptions())();
     await this.test('Scope merging', () => this.testScopeMerging())();
     await this.test('Relation scopes apply related entity scopes', () => this.testRelationScopes())();
+    await this.test('Nested relation scopes preserve selected fields', () => this.testNestedRelationScopeSelect())();
 
     await this.teardown();
 
